@@ -90,12 +90,25 @@ export const getResponses = async (
           }
         }
       }
+      let firstpage, lastpage;
+      for (let pg of pages) {
+        if (pg.number === page) {
+          const before = `page=${pg.number}`;
+          firstpage = pg.url.replace(new RegExp(before, "g"), "page=1");
+          lastpage = pg.url.replace(
+            new RegExp(before, "g"),
+            `page=${result.totalPages}`
+          );
+        }
+      }
       console.log(result, pages);
       res.render("responses", {
         title: "Responses",
         search: req.query,
         result,
         pages,
+        firstpage,
+        lastpage,
       });
     }
   } catch (err) {

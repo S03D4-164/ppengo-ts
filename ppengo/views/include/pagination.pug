@@ -1,11 +1,16 @@
 mixin pagination-include(title, result, pages)
     ul.p-2.pagination(style="margin-bottom:0;")
           h3.mr-3= title + ": " + result.totalDocs
+          if firstpage
+            li.page-item
+              a.page-link(href=firstpage) <<
           li.page-item
             if result.prevPage
-              a.page-link(href=paginate.href(true, null)) Previous
+              each page in pages
+                if page.number === result.prevPage
+                  a.page-link(href=page.url) <
             else
-              a.page-link Previous
+              a.page-link <
           if pages
             each page in pages
               if page.number === result.page
@@ -16,8 +21,13 @@ mixin pagination-include(title, result, pages)
                   a.page-link(href=page.url)= page.number
           li.page-item
             if result.nextPage
-              a.page-link(href=paginate.href()) Next
+              each page in pages
+                if page.number === result.nextPage
+                  a.page-link(href=page.url) >
             else
-              a.page-link Next
+              a.page-link >
+          if lastpage
+            li.page-item
+              a.page-link(href=lastpage) >>
 
 +pagination-include(title, result, pages)
