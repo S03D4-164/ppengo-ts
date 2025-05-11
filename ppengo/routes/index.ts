@@ -24,9 +24,18 @@ import { getResponse, getResponses } from "../controllers/responseController";
 router.get("/response", getResponses);
 router.get("/response/:id", getResponse);
 
-import { getWebpage, getWebpages } from "../controllers/webpageContoroller";
+import { getWebpage, getWebpages } from "../controllers/webpageController";
 router.get("/page", getWebpages);
 router.get("/page/:id", getWebpage);
+
+import {
+  getPayload,
+  getPayloads,
+  downloadPayload,
+} from "../controllers/payloadController";
+router.get("/payload", getPayloads);
+router.get("/payload/:id", getPayload);
+router.get("/payload/download/:id", downloadPayload);
 
 import { postWgeteer, postProgress } from "../controllers/wgeteerController";
 router.post("/", postWgeteer);

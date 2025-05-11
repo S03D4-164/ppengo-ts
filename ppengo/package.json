@@ -5,10 +5,16 @@
   "scripts": {
     "startjs": "node ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=2048",
     "start": "ts-node ./bin/www.ts --optimize_for_size --gc_interval=100 --max-old-space-size=2048",
-    "pm2": "pm2 --no-daemon start ecosystem.config.js",
+    "pm2": "DEBUG='custom:*' pm2 --no-daemon start ecosystem.config.js",
     "dev": "pm2 --no-daemon start ecosystem.config.js --env development",
     "start:debug": "node --inspect=0.0.0.0:9222 ./bin/www --optimize_for_size --gc_interval=100 --max-old-space-size=2048",
+    "commit": "node_modules/.bin/git-cz",
     "prepare": "test -d node_modules/husky && cd .. && husky ppengo/.husky || echo \"husky is not installed\""
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/.bin/git-cz"
+    }
   },
   "lint-staged": {
     "*.{js,ts,tsx, jsx}": [
@@ -61,6 +67,7 @@
     "pug": ">=3.0.1",
     "save": "^2.3.3",
     "simple-wappalyzer": "^1.1.66",
+    "wapalyzer-core": "^6.11.0",
     "winston": "^3.2.1",
     "yara": "npm:@automattic/yara@^2.6.0-beta.2"
   },
@@ -68,6 +75,7 @@
     "@commitlint/cli": "^19.7.1",
     "@commitlint/config-conventional": "^19.7.1",
     "@eslint/js": "^9.7.0",
+    "@types/archiver": "^6.0.3",
     "@types/body-parser": "^1.19.5",
     "@types/connect-mongo": "^3.1.2",
     "@types/cookie-parser": "^1.4.8",
@@ -85,6 +93,7 @@
     "@typescript-eslint/parser": "^8.32.0",
     "eslint": "^9.7.0",
     "eslint-config-prettier": "^9.1.0",
+    "git-cz": "^4.9.0",
     "globals": "^15.8.0",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.7",

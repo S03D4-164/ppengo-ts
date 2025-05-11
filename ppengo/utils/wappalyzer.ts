@@ -1,8 +1,4 @@
-import {
-  Wappalyzer as WappalyzerCore,
-  technologies,
-  categories,
-} from "./wapalyzer-core";
+import { Wappalyzer, technologies, categories } from "wapalyzer-core";
 import * as path from "node:path";
 import * as fs from "fs";
 import WebpageModel from "../models/webpage";
@@ -42,19 +38,17 @@ export const wappalyze = async (
       };
     }
 
-    WappalyzerCore.setTechnologies(
-      watechnologies ? watechnologies : technologies
-    );
-    WappalyzerCore.setCategories(wacategories ? wacategories : categories);
+    Wappalyzer.setTechnologies(watechnologies ? watechnologies : technologies);
+    Wappalyzer.setCategories(wacategories ? wacategories : categories);
 
-    const detections = await WappalyzerCore.analyze({
+    const detections = await Wappalyzer.analyze({
       url: url,
       headers: headers,
       cookies: cookies,
       html: html,
     });
 
-    result = WappalyzerCore.resolve(detections);
+    result = Wappalyzer.resolve(detections);
   } catch (error: any) {
     console.error("Error analyzing website:", error);
   }
