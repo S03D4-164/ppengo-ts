@@ -1,0 +1,91 @@
+extends layout
+
+block content
+  h1 Website
+  if website
+      include include/sitemodal.pug
+      .row
+        .col-12
+          h2= "URL: "
+            a(href=rootPath + "website?rurl=" + encodeURIComponent(website.url))=  "🔍 "
+            a(href=rootPath + "website/" + website._id)= website.url
+          h6= "createdAt: " + website.createdAt
+          //h6= "updatedAt: " + website.updatedAt
+          h6= "permission: " + website.group
+      .row
+        .col-6
+          h4= "tag: "
+            each tag in website.tag
+              each val, key in tag
+                span.badge.badge-primary
+                  a= key + ":" + val 
+                  a.text-light(href=rootPath + "website/" + website._id + "?rmtag=" + key +":"+val)= " [x]"
+                a= " "
+
+          form.form-inline(method="post" action=rootPath + "website/" + website._id)
+              input.mr-1.form-control.btn.btn-danger(type="submit" name="submit", value="add tag")
+              select.form-control(name='tag' id='tag')
+                option(value="" selected)= "-"
+                each t in tag
+                  option(value=t._id)= t.key + ":" +t.value
+              h6
+                a.btn register:
+                input.form-control(type="text" name="tagkey" id="tagkey" placeholder="key")
+                input.form-control(type="text" name="tagval" id="tagval" placeholder="value")
+
+
+              input(type="hidden" name="_csrf", value=csrfToken)
+        .col-6
+          button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#sitetrack") track ▽
+          a= "period: " + website.track.period + " / counter: " + website.track.counter
+          div#sitetrack.collapse
+            a.btn.btn-primary(data-toggle="modal",data-target="#update_form", style="color:white;cursor:pointer;") Update
+            pre= JSON.stringify(website.track, null, " ")
+          br
+          br
+      .row
+        .col-12
+          include include/lookup_api.pug
+        //div
+          button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#gsb") Google Safe Browsing ▽
+          if website.gsb.lookup
+            if website.gsb.lookup.matches
+              - var matches =  website.gsb.lookup.matches
+              if matches.length
+                each match in matches
+                  span.badge.badge-danger
+                    a= match.threatType
+          div#gsb.collapse
+            //a.btn.btn-sm.btn-primary(href=rootPath + "api/gsblookup/" + website._id) Lookup
+            button.btn.btn-sm.btn-primary(onclick="lookup()") Lookup
+
+            pre#gsblookup= JSON.stringify(website.gsb.lookup, null, " ")
+          script.
+              function lookup(){
+                var apiPath = #{rootPath};
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/gsblookup",
+                  data:JSON.stringify({"id":"#{website._id}"}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    $('pre#gsblookup').text(JSON.stringify(result, null, " "));
+                  },
+                })
+              };
+      hr
+      h3
+        = "Page List " 
+        .btn-group
+          a.btn.btn-primary(href=rootPath + "website/" + website._id) simple
+          a.btn.btn-secondary(href=rootPath + "website/" + website._id + "?verbose=on") verbose
+      if webpages
+        if verbose === true
+          include include/table.pug
+        else
+          include include/pagelist.pug
+  
+  else
+    div.alert.alert-warning
+      p No data

@@ -1,0 +1,56 @@
+#register_form.modal.col-12(role="dialog")
+  .modal-dialog.modal-dialog-centered(style="max-width:600px;")
+    .modal-content
+      .modal-body
+        form.form-group(method="post" action=rootPath)
+          .form-group
+            label(for="url") URL: 
+            a#paste= ""
+            textarea.form-control(id="url", name="url", rows=2) http://
+          .form-group.row
+            label.col-2(for="track") Track:
+            select.form-control.col-9(name='track' id='track')
+                option(value=0, selected= true) -
+                option(value=1) 1hx24 (no overwrite) 
+                option(value=2) 1hx24 (overwrite)
+          .form-group.row
+            div.col-6
+              label(for="userAgent") User-Agent: 
+              select.form-control(name='userAgent' id='userAgent' multiple)
+                include ua.pug
+            div.col-6
+              label(for="lang") Browser Language: 
+              select.form-control(name='lang' id='lang' multiple)
+                option(value='ja', selected= true) ja
+                option(value='en') en
+                option(value='zh') zh
+          include form.pug
+  script.
+    document.getElementById("url").addEventListener("paste", function (e) {
+        var clipboardData = e.clipboardData || window.clipboardData;
+        var clipboardText = clipboardData.getData('Text').split("\n");
+        var text = [];
+        for(let line of clipboardText){
+          text.push(line.replace(/^ +/, '')
+          .replace(/\[:\]/g, ':')
+          .replace(/\[.\]/g, '.')
+          .replace(/^url./i, '')
+          .replace(/^hxxp/i, 'http')
+          );
+        }
+        text = text.join("\n");
+        var paste = document.getElementById('url');
+        if (paste.selectionStart || paste.selectionStart == '0') {
+            var startPos = paste.selectionStart;
+            var endPos = paste.selectionEnd;
+            paste.value = paste.value.substring(0, startPos)
+                + text
+                + paste.value.substring(endPos, paste.value.length);
+            paste.selectionEnd= endPos + text.length;
+        } else {
+            paste.value += text;
+        }
+        if(text!=clipboardText)$('a#paste').text("replaced");
+        else $('a#paste').text("");
+        e.preventDefault();
+    });

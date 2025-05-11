@@ -1,0 +1,41 @@
+extends layout
+
+block content
+    meta(name="csrf-token", content=csrfToken)
+    script.
+        var interval = undefined;
+        function progress(){
+            var ids= $(".page").map(function() {
+                return $(this).attr("value");
+            }).get();
+            var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            //console.log(ids);
+            $.ajax({
+                type: 'POST',
+                url: 'progress',
+                headers: {  
+                    'CSRF-Token': token
+                },  
+                data: {
+                   pageId: ids
+                }
+            }).then(function(result){
+                $('#progress').replaceWith($('#progress', result));
+                if($('#completed').text()==='completed'){
+                  clearInterval(interval);
+                };
+                $('a.colorbox').colorbox({'photo':true, 'maxWidth':'80%'});
+            });
+        };
+        interval = setInterval(function () {progress()}, 2000);
+        
+    #progress
+      if completed===true
+        .p-2
+          button.btn.btn-success
+            span#completed completed
+      else
+        .p-2
+          button.btn.btn-danger Loading..
+            span#completed.spinner-border.spinner-border-sm
+      include include/table.pug

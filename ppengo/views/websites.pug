@@ -1,0 +1,119 @@
+extends layout
+
+block content
+  if result
+    - var websites = result.docs
+    include include/pagination.pug
+
+  if websites
+      if websites.length >=0
+          form.form-inline(method="get" action=rootPath+"website")
+            .form-group.mr-5
+              input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
+              label.mr-2(for="rurl") url:  
+              input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
+              label.mr-2(for="tagkey") tag: 
+              input.form-control.mr-2(type="text" name="tagkey", id="tagkey" placeholder='key' value=search?search.tagkey:"")
+              label.mr-2(for="tagval") : 
+              input.form-control.mr-5(type="text" name="tagval", id="tagval" placeholder='value' value=search?search.tagval:"")
+              .form-inline
+                .checkbox-inline.mr-5
+                    label.mr-2.form-check-label track
+                      input.mr-2.form-check-input(type="checkbox" name="track" id="track")
+                .checkbox-inline
+                    label.form-check-label export CSV
+                      input.form-check-input(type="checkbox" name="csv" id="csv")
+          if search
+            h4= " Search: " + JSON.stringify(search)
+            
+          table.table.table-bordered.table-sm
+            tr.thead-light.d-flex
+              th.col-3 capture
+              th.col-2 timestamps
+              th.col-5 site
+              th.col-2 info
+            each webpage in websites
+                if webpage.last
+                  - var status = webpage.last.status || null
+                  - var error = webpage.last.error || null
+                tr.d-flex.page(value=webpage._id, class={
+                  "table-info":webpage.track.counter,
+                  "table-secondary":status>=400,
+                  "table-warning":error,
+                  })
+                  td.col-3
+                    if webpage.last
+                      if webpage.last.thumbnail
+                        a.colorbox(href=rootPath + "screenshot/" +webpage.last.screenshot)
+                          img(width="80%" src="data:image/png;base64," + webpage.last.thumbnail)
+
+                  td.col-2
+                    a= "created: " + moment(webpage.createdAt).fromNow()
+                    br
+                    a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss')
+                    br
+                    hr
+                    a= "updated: " + moment(webpage.updatedAt).fromNow()
+                    br
+                    a= moment(webpage.updatedAt).format('YYYY-MM-DD HH:mm:ss')
+
+                  td.col-5
+                    a(href=rootPath + "website/" +webpage._id)= "input: "
+                    a= webpage.url
+                    //a(href=rootPath + "website?url=" + encodeURIComponent(webpage.url)) 🔍
+                    if webpage.track
+                      br
+                      a= "counter: " + webpage.track.counter + " / period: " + webpage.track.period
+
+                    if webpage.last
+                      hr
+                      a(href=rootPath + "page/" + webpage.last._id)= "result: "
+                      a= webpage.last.url
+                      br
+                      a= "status: " + webpage.last.status
+                      //if webpage.last.content
+                        a= " / size: " + webpage.last.content.length
+                      //else
+                        a= " / size: -"
+                      if webpage.last.remoteAddress
+                        a= " / ip: " +  webpage.last.remoteAddress.ip
+                        a(href=rootPath + "page?ip=" + webpage.last.remoteAddress.ip)= "🔍 "
+                        if webpage.last.remoteAddress.geoip.length
+                          a= " - "
+                          - var cc = webpage.last.remoteAddress.geoip[0].country
+                          a= cc
+                          a(href=rootPath + "page?country=" + cc)= "🔍"
+ 
+                      br
+                      a= "title: " + webpage.last.title
+                      a(href=rootPath + "page?title=" + webpage.last.title)= " 🔍"
+                      br
+                      a error: #{webpage.last.error||"none"}
+                      br
+                  td.col-2
+                    if webpage.gsb.lookup
+                        a gsb:
+                        br
+                        -var matches = webpage.gsb.lookup.matches
+                        if matches
+                          each match in matches
+                            span.badge.badge-danger
+                              a= match.threatType
+                            br
+                        else
+                          span.badge.badge-info
+                            a none
+                    hr
+                    a tag:
+                    br
+                    each tag in webpage.tag
+                      each val, key in tag
+                        span.badge.badge-primary
+                          a.text-light(href=rootPath + "website/?tagkey=" + key)= key
+                          a.text-light= ":"
+                          a.text-light(href=rootPath + "website/?tagkey=" + key + "&tagval=" + val)= val
+                        br
+
+  else
+    div.alert.alert-warning
+      p No data

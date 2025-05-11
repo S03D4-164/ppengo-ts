@@ -1,0 +1,29 @@
+
+mixin sitemodal-include(url, id, counter=0, period=0)
+ #update_form.modal.col-12(role="dialog")
+  .modal-dialog.modal-dialog-centered(style="max-width:600px;")
+    .modal-content
+      .modal-body
+        form(method="post" action=rootPath + "website/" + id)
+          h5 URL: #{url}
+          .form-inline
+            label.mr-2(for="counter") Counter: 
+            input.mr-2.form-control(type="number" name="counter", id="couter", max="72", min="0", step="1", value=counter)
+            label.mr-2(for="period") Period(h): 
+            input.mr-2.form-control(type="number" name="period", id="period", max="24", min="0", step="1", value=period)
+          br
+          .form-group.row
+            .col-6
+              label(for="userAgent") User-Agent: 
+              select.form-control(name='userAgent' id='userAgent')
+                include ua.pug
+            .col-6
+              label(for="lang") Browser Language: 
+              select.form-control(name='lang' id='lang')
+                option(value='ja', selected= true) ja
+                option(value='en') en
+                option(value='zh') zh
+          br
+          include form.pug
+
++sitemodal-include(website.url, website.id, website.track.counter, website.track.period)

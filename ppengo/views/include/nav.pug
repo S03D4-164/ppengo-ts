@@ -1,0 +1,45 @@
+nav.navbar.navbar-expand-sm.bg-primary.navbar-dark
+  ul.navbar-nav.mr-auto
+    li.nav-item
+      a.nav-link(href=rootPath) Top
+    if (user)
+      li.nav-item
+        a.nav-link(data-toggle="modal",data-target="#register_form", style="cursor:pointer;") Register URL
+      li.nav-item
+        a.nav-link(href=rootPath + "page") Page
+      li.nav-item
+        a.nav-link(href=rootPath + "website") Site
+      //li.nav-item
+        a.nav-link(href=rootPath + "request") Request
+      li.nav-item
+        a.nav-link(href=rootPath + "response") Response
+      li.nav-item
+        a.nav-link(href=rootPath + "response/es") ElasticSearch
+      li.nav-item
+        a.nav-link(href=rootPath + "payload") Payload
+      li.nav-item
+        a.nav-link(href=rootPath + "yararule") YARA
+      //li.nav-item
+        a.nav-link(href=rootPath + "screenshot") Screenshot
+    li.nav-item
+      a.nav-link(href=rootPath + "jstillery") JStillery
+        
+  ul.navbar-nav
+    if user
+      li.nav-item
+        a.nav-link(href="/mongo-express/") mongo-express
+      li.nav-item
+        a.nav-link(href="/agendash/") Agendash
+
+      li.nav-item.dropdown
+        a.nav-link.dropdown-toggle(href="#" id="navbardrop" data-toggle="dropdown") user: #{user.username} / #{user.group}
+        .dropdown-menu
+          if (user.admin)
+            a.dropdown-item(href=rootPath + "administration") Administration
+            a.dropdown-item(href=rootPath + "auth/register") Register
+          a.dropdown-item(href=rootPath + "auth") Account
+          a.dropdown-item(href=rootPath + "auth/logout") Logout
+    else
+      li.nav-item
+        a.nav-link(href=rootPath + "auth") Login
+

@@ -1,0 +1,8 @@
+node_modules
+*.log
+*.ZIP
+*.BIN
+package-lock.json
+.env
+data
+**/bk

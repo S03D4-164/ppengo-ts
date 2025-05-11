@@ -1,0 +1,71 @@
+extends layout
+
+block content
+  h1 Payload
+  if payload
+    h2
+        a(href=rootPath + "response?payload=" + payload._id) 🔍
+        a(href=rootPath + "payload/" + payload._id) id:  #{payload._id} / md5: #{payload.md5}
+    h3
+        a.btn.btn-danger(href=rootPath + "payload/download/" + payload._id) Download
+        - var type = payload.fileType?payload.fileType:" - "
+        a= " fileType:" +  type
+        a= " / "
+        a  buffer size: #{payload.payload.length}
+        a= " / "
+        a  text size: #{payload.payload.toString().length}
+    .row
+     .col-8
+      ul.nav.nav-pills
+        //li.nav-item
+          a.nav-link.active(data-toggle="tab",href="#content-tab") Content
+        li.nav-item
+          a.nav-link.active(data-toggle="tab",href="#hex-tab") Hex
+        li.nav-item
+          if payload.vt
+            if payload.vt.total && payload.vt.positives
+            - var total =  payload.vt.total
+            - var pos =  payload.vt.positives
+            a.nav-link(data-toggle="tab",href="#vt-tab") VT #{pos}/#{total}
+          else
+            a.nav-link(data-toggle="tab",href="#vt-tab") VT
+        //li.nav-item
+          a.nav-link(data-toggle="tab",href="#yara-tab") yara
+
+      div.tab-content
+        div#vt-tab.tab-pane
+          //a.btn.btn-primary(href=rootPath + "api/vtpayload/" + payload._id) VT search
+          button.btn.btn-sm.btn-primary(onclick="vt()") VT search
+          pre#vt= JSON.stringify(payload.vt, null, " ")
+
+        //div#content-tab.tab-pane.active
+            pre.prettyprint.linenums(style="white-space: pre-wrap")= payload.payload.toString() 
+
+        div#hex-tab.tab-pane.active
+            pre.prettyprint.linenums(style="white-space: pre-wrap")= hex
+
+        //div#yara-tab.tab-pane
+      
+        script.
+            function vt(){
+              var apiPath = #{rootPath};
+              $.ajax({
+                type: "post",
+                url: apiPath + "api/vtpayload",
+                data:JSON.stringify({"id":"#{payload._id}"}),
+                contentType: 'application/json',
+                dataType: "json",            
+                success: function(result) { 
+                  $('pre#vt').text(JSON.stringify(result, null, " "));
+                },
+              })
+            };
+     .col-4
+         h3
+             a.btn.btn-primary(href=rootPath + "payload/" + payload._id + "?yara=1") yara
+         pre.prettyprint.linenums(style="white-space: pre-wrap")= JSON.stringify(payload.yara, null, " ")
+         a.btn.btn-danger(href=rootPath + "payload/remove/" + payload._id) Remove Payload #{payload._id}
+
+  else
+    div.alert.alert-warning
+      p No data

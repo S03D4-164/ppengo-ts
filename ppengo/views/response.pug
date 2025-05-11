@@ -1,0 +1,277 @@
+extends layout
+
+block content
+  h2 Request / Response
+    if webpage
+      a= " from "
+      a(href=rootPath+"page/"+webpage._id) #{webpage.input}
+    //else
+      div.alert.alert-warning
+        p No data
+  h3
+    - var url = response?response.url:request.url
+    a(href=rootPath + "response?url=" + encodeURIComponent(url)) 🔍
+    a= url
+  .row
+    .col-6
+     .card
+      .card-header
+        h5 Request
+          a= " / " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+
+      .card-body      
+         if request
+          //h4
+            //a(href=rootPath + "response?url=" +  encodeURIComponent(request.url)) 🔍
+            a= request.url
+          table
+                //tr
+                  th= "createdAt: "
+                  td= moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+
+                tr
+                  th= "method"
+                  td
+                    a= request.method  + " " 
+                tr
+                  th= "type"
+                  td= request.resourceType
+                tr
+                  th= "failure"
+                  td= JSON.stringify(request.failure)
+                tr
+                  th= "isNavigationRequest"
+                  td= request.isNavigationRequest
+                tr
+                  th= "redirectChain"
+                  td
+                    if request.redirectChain
+                      each chain in request.redirectChain
+                        a= "- " + chain
+                        br
+    .col-6
+     .card
+      .card-header
+        h5 Response
+          if response
+            a= " /  " + moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+
+      .card-body      
+        if response
+            //h4
+              a(href=rootPath + "response?url=" + encodeURIComponent(response.url)) 🔍
+              a= response.url
+            table
+              //tr            
+                th= "createdAt"
+                td= moment(response.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+              //tr
+                th= "urlHash"
+                td= response.urlHash
+              tr
+                th= "status"
+                td= response.status + " " + response.statusText
+              if response.remoteAddress
+                - var remoteAddress = response.remoteAddress
+                tr
+                  th= "IP / Port / GeoIP"
+                  td
+                    a(href=rootPath + "response?ip=" + remoteAddress.ip)= " 🔍"
+                    a= remoteAddress.ip + " / " +  remoteAddress.port
+                    if remoteAddress.geoip
+                      if remoteAddress.geoip[0]
+                          a= " / " + remoteAddress.geoip[0].country
+                tr
+                  th= "Reverse"
+                  td
+                    if remoteAddress.reverse
+                      a= remoteAddress.reverse
+                tr
+                  th= "Wappalyzer"
+                  td
+                    if response.wappalyzer
+                      a= response.wappalyzer
+            .row
+              .col-6
+                button.mr-2.btn.btn-sm.btn-block.btn-outline-primary(data-toggle="collapse" data-target="#cymruBgp") Cymru BGP ▽
+                div#cymruBgp.collapse.show
+                  //h6 Cymru BGP
+                  if remoteAddress.bgp
+                    if remoteAddress.bgp.length  
+                      each bgp in remoteAddress.bgp
+                        pre=JSON.stringify(bgp, null, ' ')
+                    else
+                      h6 empty
+              .col-6
+                button.mr-2.btn.btn-sm.btn-block.btn-outline-primary(data-toggle="collapse" data-target="#securityDetails") securityDetails ▽
+                div#securityDetails.collapse.show
+                    //h6 securityDetails
+                    if response.securityDetails
+                      - var securityDetails = response.securityDetails
+                      if securityDetails.issuer
+                        table
+                          tr
+                            th= "issuer"
+                            td= securityDetails.issuer
+                          tr
+                            th= "protocol"
+                            td= securityDetails.protocol
+                          tr
+                            th= "subjectName"
+                            td= securityDetails.subjectName
+                          - const from = securityDetails.validFrom
+                          tr
+                            th= "validFrom"
+                            td
+                              a= moment.unix(from).format('YYYY-MM-DDTHH:mm:ss')
+                              br
+                              a= "(" + moment.unix(from).fromNow() + ")"
+                          - const to = securityDetails.validTo
+                          tr
+                            th= "validTo"
+                            td
+                              a= moment.unix(to).format('YYYY-MM-DDTHH:mm:ss')
+                              br
+                              a= "(" + moment.unix(to).fromNow() + ")"
+                      else
+                        h6 empty
+  .row
+    .col-6
+     .card
+      .card-header
+              h6 Request Headers:
+      .card-body      
+                if request
+                  if request.headers
+                    pre.prettyprint.linenums(style="white-space: pre-wrap")
+                      each value, key in request.headers
+                        | #{key}: #{value}
+                        |
+    .col-6
+     .card
+      .card-header
+              h6 Response Headers: 
+      .card-body
+              if response 
+                if response.headers
+                  pre.prettyprint.linenums(style="white-space: pre-wrap")
+                    each value, key in response.headers
+                      | #{key}: #{value}
+                      |
+
+  ul.nav.nav-tabs
+      li.nav-item
+        a.nav-link.active(data-toggle="tab",href="#content-tab") Content
+      li.nav-item
+        a.nav-link(data-toggle="tab",href="#diff-tab") Diff
+      //li.nav-item
+        a.nav-link(data-toggle="tab",href="#header-tab") Headers
+  div.tab-content
+      div#diff-tab.tab-pane
+          if diff
+              h5 previous: 
+                a(href=rootPath + "response/" + previous._id) #{previous.id}
+              button.btn.btn-outline-primary(onclick="diff('side-by-side')") side-by-side
+              button.btn.btn-outline-primary(onclick="diff('line-by-line')") line-by-line            
+              #diff
+                pre.prettyprint.linenums(style="white-space: pre-wrap") #{diff}
+          else
+            h5 No data
+      div#content-tab.tab-pane.active
+        .row
+          div.col-md-11
+           if response
+            h5
+              if response.text
+                a=  "text size: " + response.text.length
+              if response.payload
+                a= " -> "
+                a(href=rootPath+"payload/"+response.payload)= "Payload"
+            if response.text
+                button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#JStillery") JStillery ▽
+                div#JStillery.collapse
+                  pre#js
+                button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#yara") yara ▽
+                if response.yara
+                  if response.yara.rules
+                    each rule in response.yara.rules
+                      if rule.id
+                        span.badge.badge-warning
+                          a= rule.id
+                div#yara.collapse
+                  if response.yara
+                    pre#yarascan= JSON.stringify(response.yara, null, " ")
+                  else
+                    pre#yarascan
+                pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{response.text}
+                div(hidden="")
+                  pre#tmp(style="white-space: pre-wrap") #{response.text}
+            else
+              h5 No Content.
+          div.col-md-1
+            a Beautify
+            .btn-group-vertical
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"script\")") JS
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"stylesheet\")") CSS
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"html\")") HTML
+                button.btn.btn-sm.btn-outline-primary(onclick="prettyPrint()") prettyPrint
+            hr
+            p Deobfuscate
+              button.btn.btn-sm.btn-primary(onclick="jstillery()") JStillery
+            hr
+            p
+              button.btn.btn-sm.btn-primary(onclick="yara()") yara
+            p
+              button.btn.btn-sm.btn-primary(onclick="reset()") reset
+
+          script.
+              var apiPath = #{rootPath};
+              function reset(){
+                var content=$("#tmp").text();
+                $('pre#content').text(content);
+                $('pre#content').removeClass("prettyprinted");
+              };
+              function jstillery(){
+                var content=$("#content").text();
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/jstillery",
+                  data:JSON.stringify({"source":content}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    $('pre#js').text(result["source"]);
+                  },
+                  error: function() {
+                    $('pre#js').text("jstillery error");
+                  }
+                })
+              };
+              function beautify(type){
+                //console.log(type);
+                var content=$("#content").text();
+                var beautified;
+                var opts = {"unescape-strings":true};
+                if (type==="script") beautified = js_beautify(content, opts);
+                else if (type==="stylesheet") beautified = css_beautify(content);
+                else beautified = html_beautify(content);
+                $('pre#content').text(beautified);
+              };
+              
+              function yara(){
+                var content=$("pre#content").text();
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/yara",
+                  data: JSON.stringify({"source":content}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    console.log(result)
+                    $("pre#content").highlight(result);
+                  },
+                error: function(err) {
+                    $('pre#yara').text(err);
+                  }
+                })
+              };

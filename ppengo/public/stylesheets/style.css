@@ -1,0 +1,79 @@
+html {
+  overflow-y:scroll;
+  font-size: 14px;
+}
+
+body {
+   padding-right: 0 !important;
+}
+
+table {
+  table-layout:fixed;
+}
+
+td {
+  word-break:break-all;
+}
+
+img{
+  border:solid thin lightgrey;
+  display: block;
+  margin: 0 auto;
+}
+
+.highlight {
+  background-color: #FFFF88;
+}
+
+span.flag-icon {
+  border:solid thin lightgrey;
+}
+
+.nav-pills li a {
+-webkit-border-radius: 0 !important;
+   -moz-border-radius: 0 !important;
+        border-radius: 0 !important;
+}
+
+/*
+input{
+  width:100%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  word-break: break-all;
+}
+*/
+
+pre {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+  border:solid thin lightgrey;
+}
+
+#toTop {
+  display: none; /* Hidden by default */
+  position: fixed; /* Fixed/sticky position */
+  top: 50px; /* Place the button at the bottom of the page */
+  right: 30px; /* Place the button 30px from the right */
+  z-index: 99; /* Make sure it does not overlap */
+  border: none; /* Remove borders */
+  outline: none; /* Remove outline */
+  background-color: red; /* Set a background color */
+  color: white; /* Text color */
+  cursor: pointer; /* Add a mouse pointer on hover */
+  padding: 10px; /* Some padding */
+  border-radius: 5px; /* Rounded corners */
+  font-size: 16px; /* Increase font size */
+}
+
+#toTop:hover {
+  background-color: #555; /* Add a dark-grey background on hover */
+}
+
+.container {
+  max-width:1280px;
+}

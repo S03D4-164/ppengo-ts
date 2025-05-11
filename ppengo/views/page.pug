@@ -1,0 +1,386 @@
+extends layout
+
+
+block content
+  if webpage
+    .card
+      .card-header
+        h4 Page
+          a= " from "
+          a(href=rootPath + "website/" + website._id) #{webpage.input}
+      .card-body 
+       .row
+        .col-3
+          if webpage.thumbnail
+            a.colorbox(href=rootPath + "screenshot/" + webpage.screenshot)
+              img(width="100%" id="thumbnail" src="data:image/png;base64," + webpage.thumbnail)
+          h5= "ID: "
+            a(href=rootPath + "page/" + webpage._id) #{webpage._id}
+          a= moment(webpage.createdAt).format('YYYY-MM-DD HH:mm:ss') + " / " +moment(webpage.createdAt).fromNow()
+
+        .col-9
+
+          h4
+            table
+              tr
+                th SafeBrowsing
+                td
+                  if website.gsb
+                      - var matches =  website.gsb.lookup.matches
+                      if matches
+                        each match in matches
+                          span.badge.badge-danger
+                            a= match.threatType
+              tr
+                th Url
+                td
+                  if webpage.url
+                    a(href=rootPath + "page?url=" + encodeURIComponent(webpage.url))  🔍
+                    a= webpage.url
+
+              tr
+                th Title
+                td
+                  if webpage.title
+                    a(href=rootPath + "page?title=" + encodeURIComponent(webpage.title))  🔍
+                    a= webpage.title
+              tr
+                th Error
+                if webpage.error            
+                  td= webpage.error
+                else
+                  td= "none"
+              if webpage.remoteAddress
+                - var pageAddress = webpage.remoteAddress
+                tr
+                  th= "IP/Port/GeoIP"
+                  td
+                    a(href=rootPath + "page?ip=" + pageAddress.ip)= " 🔍"
+                    a= pageAddress.ip + " / " +  pageAddress.port
+                    if webpage.remoteAddress.geoip
+                      if webpage.remoteAddress.geoip[0]
+                          a= " / " + webpage.remoteAddress.geoip[0].country
+                tr
+                  th= "Reverse"
+                  td
+                    if webpage.remoteAddress.reverse
+                      each reverse in webpage.remoteAddress.reverse
+                        a= reverse
+                        br        
+       .row
+        .col-4
+          button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#option") Option
+          #option.collapse.show
+                table
+                  each value, key in webpage.option
+                    if value
+                      tr
+                        th= key
+                        td= value
+        //.col-6
+          button.btn.btn-block.btn-sm.btn-light(data-toggle="collapse" data-target="#pred") Predictions 
+          #pred.collapse.show
+            button.btn.btn-sm.btn-primary(onclick="mnPredictions()") mobilenet
+            button.btn.btn-sm.btn-primary(onclick="predictions()") retrained
+            pre#predictions
+       hr
+       .row
+        .col-4
+          //h6= "Wappalyzer"
+          button.btn.btn-block.btn-sm.btn-primary(data-toggle="collapse" data-target="#wappalyzer") Wappalyzer
+          #wappalyzer.collapse.show
+            if webpage.wappalyzer
+              each wapp in  webpage.wappalyzer
+                a= " - " + wapp
+                br
+        .col-4
+          //h6 Cymru BGP
+          button.btn.btn-block.btn-sm.btn-primary(data-toggle="collapse" data-target="#bgp") BGP
+          #bgp.collapse.show
+            if webpage.remoteAddress.bgp
+                if webpage.remoteAddress.bgp.length  
+                  each bgp in webpage.remoteAddress.bgp
+                    pre=JSON.stringify(bgp, null, ' ')
+                else
+                  a empty
+        .col-4
+          //h6 securityDetails
+          button.btn.btn-block.btn-sm.btn-primary(data-toggle="collapse" data-target="#securityDetails") securityDetails
+          #securityDetails.collapse.show
+            if webpage.securityDetails
+               if webpage.securityDetails
+                - var securityDetails = webpage.securityDetails
+                if securityDetails.issuer
+                  table
+                    tr
+                      th= "issuer"
+                      td= securityDetails.issuer
+                    tr
+                      th= "protocol"
+                      td= securityDetails.protocol
+                    tr
+                      th= "subjectName"
+                      td= securityDetails.subjectName
+                    - const from = securityDetails.validFrom
+                    tr
+                      th= "validFrom"
+                      td= moment.unix(from).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(from).fromNow()
+                    - const to = securityDetails.validTo
+                    tr
+                      th= "validTo"
+                      td= moment.unix(to).format('YYYY-MM-DDTHH:mm:ss / ') + moment.unix(to).fromNow()
+                else
+                    h6 empty
+
+    ul.nav.nav-pills
+      li.nav-item
+        a.nav-link.active(data-toggle="tab",href="#request-tab") Request
+      li.nav-item
+        a.nav-link(data-toggle="tab",href="#content-tab") Content
+      li.nav-item
+        a.nav-link(data-toggle="tab",href="#diff-tab") Diff
+
+    div.tab-content
+      div#request-tab.tab-pane.active
+            if result
+              - var requests = result.docs
+              include include/pagination.pug
+              h4= "Requests: " + requests.length
+              
+              form.form-inline(method="get" action=rootPath + "page/" + webpage._id)
+                input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
+                label.mr-2(for="rurl") url:  
+                input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
+                label.mr-2(for="status") status:  
+                input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
+                label.mr-2(for="source") source:  
+                input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
+              if search.length
+                h4= "Search: " + JSON.stringify(search) + " - Total: " + responses.length
+              table.table.table-bordered.table-sm
+                tr.thead-light.d-flex
+                  //th.col-2 createdAt
+                  th.col-2 request
+                  th.col-4 url
+                  th.col-2 response
+                  th.col-2 securityDetails
+                  th.col-2 yara
+                - var seq = 0
+                each request in requests
+                  tr.d-flex(class={
+                      "table-info":request.isNavigationRequest===true,
+                      "table-danger":request.url===webpage.url,
+                      "table-warning":request.failure,
+                    })
+                    - seq += 1
+                    td.col-2
+                      a.btn.btn-sm.btn-primary(href=rootPath + "request/" + request._id)= seq
+                      if request.response
+                        a   #{request.method}
+                      else
+                        a= request.method
+                      if request.resourceType
+                        a= " / " + request.resourceType
+                      if request.redirectChain
+                        br
+                        a= "chain:" +request.redirectChain.length
+                      if request.failure
+                        br
+                        a= request.failure.errorText
+                    td.col-4
+                        a(href=rootPath + "response?url=" + encodeURIComponent(request.url))= "🔍 "
+                        if request.url.length > 100
+                          a #{request.url.slice(0,100)}(truncated)
+                        else
+                          a #{request.url}
+                    if request.response
+                        - var response = request.response
+                        td.col-2(class={
+                          "table-default":response.status>=200&&response.status<300,
+                          "table-secondary":response.status>=400,
+                          "table-warning":response.status>=300&&response.status<400,
+                        })
+                          a= "status: "
+                          if response.status
+                            a(href=rootPath + "response/" + response._id) #{response.status}
+                          br
+                          a= " size: "
+                          if response.text
+                            a= response.text.length + " -> "
+                            a(href=rootPath + "payload/" + response.payload)= "payload"
+                          else
+                            a -
+                          br
+                          a= "ip:"
+                          a(href=rootPath + "response?ip=" + response.remoteAddress.ip)= response.remoteAddress.ip
+                          if response.remoteAddress.geoip
+                            if response.remoteAddress.geoip[0]
+                              a= " - " + response.remoteAddress.geoip[0].country
+                        td.col-2
+                          if response.securityDetails
+                            if response.securityDetails.issuer
+                              a= response.securityDetails.issuer
+                        - var response = request.response
+                        td.col-2
+                          if response.yara
+                            if response.yara.rules
+                              each rule in response.yara.rules
+                                if rule.id
+                                  span.badge.badge-warning
+                                    a= rule.id
+                    else
+                        td.col-6 no response
+      div#content-tab.tab-pane
+       .row
+        if webpage.content
+
+          div.col-md-11
+            h5= "text size: " + webpage.content.length
+            button.mr-2.btn.btn-outline-primary(data-toggle="collapse" data-target="#yara") yara ▽
+            if webpage.yara
+                each rule in webpage.yara.rules
+                  if rule.id
+                    span.badge.badge-warning
+                      a= rule.id
+            div#yara.collapse
+              pre#yaramatched
+              if webpage.yara
+                pre#yarascan= JSON.stringify(webpage.yara, null, " ")
+              else
+                pre#yarascan
+            pre#content.prettyprint.linenums(style="white-space: pre-wrap") #{webpage.content}
+            div(hidden="")
+              pre#tmp(style="white-space: pre-wrap") #{webpage.content}
+
+          div.col-md-1
+            a Beautify
+            .btn-group-vertical
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"script\")") JS
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"stylesheet\")") CSS
+                button.btn.btn-sm.btn-outline-primary(onclick="beautify(\"html\")") HTML
+                button.btn.btn-sm.btn-outline-primary(onclick="prettyPrint()") prettyPrint
+            hr
+            //p Deobfuscate
+              button.btn.btn-sm.btn-primary(onclick="jstillery()") JStillery
+            //hr
+            p
+              button.btn.btn-sm.btn-primary(onclick="yara()") yara
+            p
+              button.btn.btn-sm.btn-primary(onclick="reset()") reset
+
+        else
+         div.alert
+          p No data
+      div#diff-tab.tab-pane
+          if diff
+              h5 previous: 
+                a(href=rootPath + "page/" + previous._id) #{previous.id}
+
+              button.btn.btn-outline-primary(onclick="diff('side-by-side')") side-by-side
+              button.btn.btn-outline-primary(onclick="diff('line-by-line')") line-by-line            
+
+              #diff
+                pre.prettyprint.linenums(style="white-space: pre-wrap") #{diff}
+          else
+            div.alert
+              p No data
+
+    script(src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.1")
+    script(src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0")
+    script.
+              var apiPath = #{rootPath};
+              function reset(){
+                var content=$("pre#tmp").text();
+                $('pre#content').text(content);
+                $('pre#content').removeClass("prettyprinted");
+              };
+              function jstillery(){
+                var content=$("pre#content").text();
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/jstillery",
+                  data:JSON.stringify({"source":content}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    $('pre#js').text(result["source"]);
+                  },
+                  error: function() {
+                    $('pre#js').text("jstillery error");
+                  }
+                })
+              };
+              function beautify(type){
+                //console.log(type);
+                var content=$("pre#content").text();
+                var beautified;
+                var opts = {"unescape-strings":true};
+                if (type==="script") beautified = js_beautify(content, opts);
+                else if (type==="stylesheet") beautified = css_beautify(content);
+                else beautified = html_beautify(content);
+                $('pre#content').text(beautified);
+              };
+              function yara(){
+                var content=$("pre#content").text();
+                $.ajax({
+                  type: "post",
+                  url: apiPath + "api/yara",
+                  data: JSON.stringify({"source":content}),
+                  contentType: 'application/json',
+                  dataType: "json",            
+                  success: function(result) { 
+                    console.log(result)
+                    $('pre#yaramatched').text(JSON.stringify(result, null, " "));
+                    $("pre#content").highlight(result);
+                  },
+                error: function(err) {
+                    $('pre#yarascan').text(err);
+                  }
+                })
+              };
+              function diff(output){
+                var udiff = $("#diff").text();
+                var diffHtml = Diff2Html.getPrettyHtml(udiff,{
+                  inputFormat: 'diff',
+                  showFiles: false,
+                  matching: "none",
+                  outputFormat: output
+                });
+                document.getElementById("diff").innerHTML = diffHtml;
+              };
+              async function predictions(){
+                const mobilenet = await tf.loadLayersModel(
+                  "https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json"
+                );
+                const layer = mobilenet.getLayer("conv_pw_13_relu");
+                const decapitatedMobilenet = tf.model({
+                  inputs: mobilenet.inputs,
+                  outputs: layer.output
+                });
+                const model = await tf.loadLayersModel(apiPath + "my-model/model.json")
+                const img = document.getElementById('thumbnail');
+                let offset = tf.scalar(127.5);
+                const tensor = tf.browser.fromPixels(img, 3)
+                               .resizeNearestNeighbor([224, 224])
+                               .toFloat()
+                               .sub(offset)
+                               .div(offset)
+                               .expandDims();
+                embeddings = decapitatedMobilenet.predict(tensor);
+                var prediction = model.predict(embeddings);
+                console.log(prediction.dataSync())
+              }
+              function mnPredictions(){
+                const img = document.getElementById('thumbnail');
+                mobilenet.load().then(model => {
+                  model.classify(img).then(predictions => {
+                    console.log('Predictions: ', predictions)
+                    const pred = JSON.stringify(predictions, null, 2)
+                    $('pre#predictions').text(pred);
+                  })
+                })
+              }
+
+  else
+    div.alert.alert-warning
+      p No data

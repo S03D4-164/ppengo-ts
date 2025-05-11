@@ -1,0 +1,128 @@
+mixin webpages-include(webpages, title, website, search)
+  if result
+    - var webpages = result.docs
+  if webpages
+    if webpages.length >= 0
+      if website
+        - var actionPath = rootPath + "website/" + website._id
+      else
+        - var actionPath = rootPath + "page"
+      if ids || completed
+        h4= "Progress - Total: " + webpages.length
+      else
+        include pagination.pug
+        //.row
+          .col-4
+              include pagination.pug
+          .col-4.p-2
+            h3
+              = "List: " 
+              .btn-group
+                a.btn.btn-secondary(href=rootPath + "page") simple
+                a.btn.btn-primary(href=rootPath + "page?verbose=on") verbose
+
+        form.form-inline(method="get" action=actionPath)
+          .form-group.mr-5
+            input.form-control.mr-2.btn.btn-sm.btn-danger(type="submit" value="search")
+            label.mr-2(for="rurl") url:  
+            input.form-control.mr-2(type="text" name="rurl", id="rurl" placeholder='regex value' value=search?search.rurl:"")
+            label.mr-2(for="title") title:  
+            input.form-control.mr-2(type="text" name="title", id="title" placeholder='' value=search?search.title:"")
+            label.mr-2(for="status") status:  
+            input.form-control.mr-2(type="text" name="status", id="status" placeholder='' value=search?search.status:"")
+            label.mr-2(for="source") source:  
+            input.form-control.mr-2(type="text" name="source", id="source" placeholder='' value=search?search.source:"")
+          .checkbox-inline
+              label.form-check-label export CSV
+                input.form-check-input(type="checkbox" name="csv" id="csv")
+          if website
+            label.mr-2= " " 
+            .form-check.mr-2(hidden="")
+              label.form-check-label
+                input.form-check-input(type="checkbox" name="verbose" id="verbose" checked)
+                a verbose
+      if search
+        h4= "Search: " + JSON.stringify(search)
+
+      table.table.table-bordered.table-sm
+        tr.thead-light.d-flex
+          th.col-5 input
+          th.col-4 result
+          th.col-3 capture
+        each webpage in webpages
+          tr.d-flex.page(value=webpage._id, class={
+                      "table-secondary":webpage.status>=400,
+                      "table-warning":webpage.error&&!webpage.status,
+                      })
+            td.col-5
+              .row
+                .col-12
+                  h5 url: 
+                    a(href=rootPath + "page?input=" + encodeURIComponent(webpage.input)) 🔍
+                    a #{webpage.input}
+              .row
+                .col-3 createdAt
+                .col-9
+                  - var date = webpage.createdAt 
+                  a= moment(date).format('YYYY-MM-DD HH:mm:ss') + " / " + moment(date).fromNow()
+              .row
+                if webpage.option
+                  each value, key in webpage.option
+                    if value
+                      .col-3 #{key}
+                      .col-9 #{value}                      
+            td.col-4
+              .row                    
+                .col-12
+                  if webpage._id
+                    h5 id: 
+                      a(target="_blank" href=rootPath + "page/" +webpage._id) #{webpage._id}
+                      if webpage.requests || webpage.responses
+                        a= " - req:" + webpage.requests.length + " / res:" + webpage.responses.length
+              .row
+                .col-2 title
+                .col-10
+                  if webpage.title
+                    a(href=rootPath + "page?title=" + encodeURIComponent(webpage.title)) 🔍
+                    a #{webpage.title}
+              .row
+                .col-2 url
+                .col-10
+                  if webpage.url
+                    //a(href=rootPath + "page?url=" + encodeURIComponent(webpage.url)) 🔍
+                    a #{webpage.url}
+              .row
+                .col-2 error
+                .col-10
+                  if webpage.error
+                    a= webpage.error
+                  else
+                    a none
+              .row
+                .col-2 status
+                .col-4
+                  if webpage.status
+                    a= webpage.status
+                .col-2 size
+                .col-4
+                  if webpage.content
+                    a= webpage.content.length
+              .row
+                .col-2 ip
+                .col-10
+                  if webpage.remoteAddress
+                    a(href=rootPath + "page?ip=" + webpage.remoteAddress.ip) 🔍
+                    a #{webpage.remoteAddress.ip}
+                  if webpage.remoteAddress.geoip
+                    if webpage.remoteAddress.geoip[0]
+                      a= " (" + webpage.remoteAddress.geoip[0].country + ")"
+
+            td.col-3
+              if webpage.thumbnail
+                a.colorbox(href=rootPath + "screenshot/" +webpage.screenshot)
+                  img(width="100%" src="data:image/png;base64," + webpage.thumbnail)
+  else
+    div.alert.alert-warning
+      p No data
+
++webpages-include(webpages, title, website, search)
