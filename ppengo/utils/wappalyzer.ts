@@ -37,9 +37,15 @@ export const wappalyze = async (
         ),
       };
     }
+  } catch (error: any) {
+    console.error("webappanalyzer json not found", error);
+  }
 
-    Wappalyzer.setTechnologies(watechnologies ? watechnologies : technologies);
-    Wappalyzer.setCategories(wacategories ? wacategories : categories);
+  try {
+    await Wappalyzer.setTechnologies(
+      watechnologies ? watechnologies : technologies
+    );
+    await Wappalyzer.setCategories(wacategories ? wacategories : categories);
 
     const detections = await Wappalyzer.analyze({
       url: url,
@@ -47,7 +53,6 @@ export const wappalyze = async (
       cookies: cookies,
       html: html,
     });
-
     result = Wappalyzer.resolve(detections);
   } catch (error: any) {
     console.error("Error analyzing website:", error);
@@ -62,13 +67,16 @@ export const analyze = async (id: string): Promise<void> => {
   if (webpage && webpage.url) {
     try {
       logger.debug(`page: ${webpage.url}`);
-      const wapps = await wappalyze(
+      const wapalyzed = await wappalyze(
         webpage.url,
         webpage.headers || {},
         webpage.content || "",
         webpage.status || 0
       );
-
+      let wapps: string[] = [];
+      for (const wap of wapalyzed) {
+        wapps.push(wap.name);
+      }
       if (wapps.length > 0) {
         await WebpageModel.findOneAndUpdate(
           { _id: webpage._id },

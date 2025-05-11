@@ -83,7 +83,7 @@ export const downloadPayload = async (
 ): Promise<void> => {
   const id = req.params.id;
 
-  const payload: any = await PayloadModel.findById(id).lean<PayloadDocument>();
+  const payload: any = await PayloadModel.findById(id);
   if (!payload) {
     res.status(404).send("Payload not found");
   }
@@ -98,9 +98,10 @@ export const downloadPayload = async (
     res.status(500).send({ error: err.message });
   });
 
+  const pl = Buffer.from(payload.payload, "base64");
   res.attachment(`${payload.md5}.zip`);
   archive.pipe(res);
-  archive.append(Buffer.from(payload.payload), { name: payload.md5 });
+  archive.append(pl, { name: payload.md5 });
   await archive.finalize();
 };
 

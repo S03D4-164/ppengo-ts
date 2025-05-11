@@ -37,6 +37,17 @@ router.get("/payload", getPayloads);
 router.get("/payload/:id", getPayload);
 router.get("/payload/download/:id", downloadPayload);
 
+import {
+  getYararule,
+  getYararules,
+  postYararule,
+  postYararules,
+} from "../controllers/yararuleController";
+router.get("/yararule", getYararules);
+router.get("/yararule/:id", getYararule);
+router.post("/yararule", postYararules);
+router.post("/yararule/:id", postYararule);
+
 import { postWgeteer, postProgress } from "../controllers/wgeteerController";
 router.post("/", postWgeteer);
 router.post("/progress", postProgress);
