@@ -17,7 +17,8 @@ block content
      .card
       .card-header
         h5 Request
-          a= " / " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+          if request
+            a= " / " + moment(request.createdAt).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
 
       .card-body      
          if request

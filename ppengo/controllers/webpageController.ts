@@ -6,6 +6,7 @@ import { createPatch } from "diff";
 import WebpageModel from "../models/webpage";
 import WebsiteModel from "../models/website";
 import RequestModel from "../models/request";
+import HarfileModel from "../models/harfile";
 
 function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
@@ -188,6 +189,12 @@ export const getWebpage = async (
     .lean()
     .exec();
 
+  const harfile = await HarfileModel.findOne({ webpage: webpage._id }).exec();
+  let har;
+  if (harfile) {
+    har = Buffer.from(harfile.har).toString("utf-8");
+  }
+
   res.render("page", {
     webpage,
     result,
@@ -195,6 +202,7 @@ export const getWebpage = async (
     website,
     previous,
     diff,
+    har,
     search: req.query,
     title: "Request",
   });
