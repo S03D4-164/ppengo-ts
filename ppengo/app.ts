@@ -15,6 +15,7 @@ import morgan from "morgan";
 import Agenda from "agenda";
 import moment from "moment";
 import router from "./routes/index";
+import apiRouter from "./routes/api";
 import UserModel from "./models/user";
 
 dotenv.config();
@@ -107,6 +108,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // Routes
 app.use(rootPath, router);
+app.use(rootPath + "api", apiRouter);
 
 // View engine setup
 app.set("views", path.join(__dirname, "views"));
