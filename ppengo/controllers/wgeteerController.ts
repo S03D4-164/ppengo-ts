@@ -88,7 +88,8 @@ export const postWgeteer = async (
   const ids: string[] = webpages.map((webpage: any) => webpage._id.toString());
 
   for (const webpage of webpages) {
-    agenda.now("wgeteer", {
+    //agenda.now("wgeteer", {
+    agenda.now("playwget", {
       pageId: webpage._id,
       count: 0,
     });
